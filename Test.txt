@@ -1,55 +1,15 @@
-import requests
-import time
-import os
+from FlightRadar24 import FlightRadar24API
 
-def clear_terminal():
-    os.system('cls' if os.name == 'nt' else 'clear')
+class CustomFlightRadar24API(FlightRadar24API):
+    def __init__(self, api_key):
+        super().__init__()
+        self.api_key = api_key
 
-url = 'https://kp.gfz-potsdam.de/app/files/Kp_ap_Ap_SN_F107_nowcast.txt'
+    def fetch_with_key(self, url, params=None):
+        headers = {"Authorization": f"Bearer {self.api_key}"}
+        return self.session.get(url, params=params, headers=headers)
 
-while True:
-    try:
-        response = requests.get(url)
-        data = response.text
-        lines = data.split('\n')
-        # Skip header lines starting with '#' and empty lines
-        data_lines = [line for line in lines if line and not line.startswith('#')]
-        first_5_rows = data_lines[:5]
-        clear_terminal()
-        for row in first_5_rows:
-            # Split the row into values
-            values = row.strip().split()
-            if len(values) != 28:
-                continue  # Skip lines that don't have exactly 28 values
-            # Assign values to variables
-            (YYY, MM, DD, days, days_m, Bsr, dB,
-             Kp1, Kp2, Kp3, Kp4, Kp5, Kp6, Kp7, Kp8,
-             ap1, ap2, ap3, ap4, ap5, ap6, ap7, ap8,
-             Ap, SN, F107obs, F107adj, D) = values
-
-            # Convert numerical strings to appropriate types if needed
-            YYY = int(YYY)
-            MM = int(MM)
-            DD = int(DD)
-            days = int(days)
-            days_m = float(days_m)
-            Bsr = int(Bsr)
-            dB = int(dB)
-            Kp_values = [float(kp) for kp in (Kp1, Kp2, Kp3, Kp4, Kp5, Kp6, Kp7, Kp8)]
-            ap_values = [int(ap) for ap in (ap1, ap2, ap3, ap4, ap5, ap6, ap7, ap8)]
-            Ap = int(Ap)
-            SN = int(SN)
-            F107obs = float(F107obs)
-            F107adj = float(F107adj)
-            D = int(D)
-
-            # Print the variables (for demonstration)
-            print(f"Date: {YYY}-{MM:02d}-{DD:02d}")
-            print(f"days: {days}, days_m: {days_m}, Bsr: {Bsr}, dB: {dB}")
-            print(f"Kp indices: {Kp_values}")
-            print(f"ap indices: {ap_values}")
-            print(f"Ap: {Ap}, SN: {SN}, F10.7obs: {F107obs}, F10.7adj: {F107adj}, D: {D}")
-            print("-" * 40)
-    except Exception as e:
-        print(f"An error occurred: {e}")
-    time.sleep(1)
+# Usage
+api = CustomFlightRadar24API("your_api_key_here")
+flights = api.fetch_with_key("https://enterprise.flightradar24.com/api/v1/flights", params={"bounds": "10.0,20.0,30.0,40.0"})
+print(flights.json())
