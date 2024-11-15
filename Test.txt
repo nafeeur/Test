@@ -1,1 +1,39 @@
-curl -v -X GET "https://fr24api.flightradar24.com/api/live/flight-positions/full?bounds=50.682,46.218,14.422,22.243" -H "Authorization: Bearer <token>" -H "Accept: application/json"
+import requests
+
+# Proxy configuration
+proxies = {
+    "http": "http://proxy.example.com:8080",
+    "https": "http://proxy.example.com:8080"
+}
+
+# API details
+url = "https://fr24api.flightradar24.com/api/live/flight-positions/full"
+headers = {
+    'Authorization': 'Bearer <token>',  # Replace <token> with your API token
+    'Accept': 'application/json',
+    'Accept-Version': 'v1'
+}
+params = {
+    'bounds': '50.682,46.218,14.422,22.243'
+}
+
+def fetch_flight_positions():
+    try:
+        # Add timeout and proxy configuration
+        response = requests.get(url, headers=headers, params=params, proxies=proxies, timeout=30)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+
+        # Parse and print response
+        data = response.json()
+        print("API Response:")
+        print(data)
+
+    except requests.exceptions.ProxyError:
+        print("Proxy error: Check your proxy settings.")
+    except requests.exceptions.Timeout:
+        print("Request timed out. Try increasing the timeout or checking your network.")
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
+
+# Fetch flight positions
+fetch_flight_positions()
