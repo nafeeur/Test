@@ -1,15 +1,39 @@
-from FlightRadar24 import FlightRadar24API
+import requests
 
-class CustomFlightRadar24API(FlightRadar24API):
-    def __init__(self, api_key):
-        super().__init__()
-        self.api_key = api_key
+# Your API token
+API_TOKEN = "your_api_token_here"
 
-    def fetch_with_key(self, url, params=None):
-        headers = {"Authorization": f"Bearer {self.api_key}"}
-        return self.session.get(url, params=params, headers=headers)
+# Base URL for FlightRadar24 API
+BASE_URL = "https://fr24api.flightradar24.com/api"
 
-# Usage
-api = CustomFlightRadar24API("your_api_key_here")
-flights = api.fetch_with_key("https://enterprise.flightradar24.com/api/v1/flights", params={"bounds": "10.0,20.0,30.0,40.0"})
-print(flights.json())
+# Define the endpoint for live flight positions
+endpoint = "/live/flight-positions/full"
+
+# Set up the headers with the API token
+headers = {
+    "Authorization": f"Bearer {API_TOKEN}",
+    "Content-Type": "application/json"
+}
+
+# Function to fetch live flight positions
+def fetch_live_flight_positions():
+    try:
+        # Make the GET request
+        response = requests.get(BASE_URL + endpoint, headers=headers)
+        
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Parse the JSON data
+            data = response.json()
+            # Print out the data
+            print("Live Flight Positions:")
+            for flight in data.get('data', []):
+                print(f"Flight {flight.get('callsign')}: {flight.get('origin')} to {flight.get('destination')}")
+        else:
+            print(f"Error: {response.status_code} - {response.text}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# Run the script
+if __name__ == "__main__":
+    fetch_live_flight_positions()
